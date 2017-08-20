@@ -6,6 +6,7 @@ db = sqlite3.connect(':memory:')
 cursor = db.cursor()
 
 
+
 def setup_tables(cursor=None):
     if not cursor:
         cursor = db.cursor()
