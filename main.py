@@ -1,15 +1,21 @@
 import sqlite3
-from flask import Flask, jsonify, abort, render_template
+from flask import (
+    Flask,
+    jsonify,
+    abort,
+    render_template
+)
+
 
 
 db = sqlite3.connect(':memory:')
 cursor = db.cursor()
 
 
-
 def setup_tables(cursor=None):
     if not cursor:
         cursor = db.cursor()
+
     cursor.execute('''
     CREATE TABLE receipts(id INTEGER PRIMARY KEY AUTOINCREMENT, total_due FLOAT,
                        tax_due FLOAT, total_purchased FLOAT)
@@ -30,22 +36,41 @@ def drop_tables(cursor=None):
     db.commit()
 
 
-def calculate_total_purchase(items):
+def calculate_total_purchase(items): ####
+
+
     return sum(item['price'] * item['qty']
                for item in items)
 
 
-def calculate_tax(total, sales_tax):
+def calculate_tax(total, sales_tax): ##
+
+    """
+    >>> calculate_tax(100, {'city': .2,'state': .7})
+    90.0
+    """
+
     return sum(total * sales_tax[tax_rule]
                for tax_rule in sales_tax)
 
 
+
+
 def calculate_total_due(total_purchased, tax_due):
+    """
+    >>> calculate_total_due(13, 15)
+    28
+    >>> calculate_total_due(3.5, 5.5)
+    9.0
+    >>> calculate_total_due(3, 5.5)
+    8.5
+    """
     return total_purchased + tax_due
 
 
-def save_sale(purchase, total_purchased, tax_due, total_due):
+def save_sale(purchase, total_purchased, tax_due, total_due): ###
     cursor = db.cursor()
+
     cursor.execute('''INSERT INTO receipts(total_purchased, tax_due, total_due)
                   VALUES(?,?,?)''', (total_purchased, tax_due, total_due))
     receipt_id = cursor.lastrowid
@@ -60,7 +85,7 @@ def save_sale(purchase, total_purchased, tax_due, total_due):
     return receipt_id
 
 
-def print_receipt(items, total_purchased, tax_due, total_due):
+def print_receipt(items, total_purchased, tax_due, total_due): ####
     receipt = '<html><body>'
     receipt += '<h2>My Fashion Store</h2>'
     receipt += '<hr>'
@@ -77,7 +102,7 @@ def print_receipt(items, total_purchased, tax_due, total_due):
     return receipt
 
 
-def complete_sale(purchase, sales_tax):
+def complete_sale(purchase, sales_tax): ####
     total_purchased = calculate_total_purchase(purchase)
     tax_due = calculate_tax(total_purchased, sales_tax)
     total_due = calculate_total_due(total_purchased, tax_due)
@@ -87,7 +112,7 @@ def complete_sale(purchase, sales_tax):
     return receipt_id
 
 
-def get_sales():
+def get_sales(): ###
     receipts = []
     for row in db.execute('SELECT * FROM receipts'):
         items = []
@@ -136,16 +161,18 @@ def create_app():
         setup_tables()
 
     @app.route("/")
-    def get_homepage():
+    def get_homepage_route(): # added route
         return '<h1>Welcome to My Fashion Shop</h1>'
 
     @app.route("/get-sales")
-    def get_sales():
+    def get_sales_route(): # added route
         receipts = get_sales()
         return jsonify(receipts)
 
     @app.route("/get-receipt/<id>")
-    def get_receipt_printout(id):
+    def get_receipt_printout_route(id): # added route
+        print (id)
+        print (type(id))
         # id is a required parameter
         if not id:
             abort(400)
@@ -160,7 +187,7 @@ def create_app():
             return abort(404, str(e))
 
     @app.route("/add-sale")
-    def add_sale():
+    def add_sale_route():  # added route
         purchase = [
             {'name': 't-shirt',
              'qty': 15,
