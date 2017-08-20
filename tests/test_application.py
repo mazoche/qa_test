@@ -2,13 +2,6 @@ import sqlite3
 import pytest
 import json
 
-from flask import (
-    Flask,
-    jsonify,
-    abort,
-    render_template
-)
-
 from flask import url_for
 
 from main import (
@@ -17,9 +10,6 @@ from main import (
     calculate_total_purchase,
     drop_tables,
     complete_sale,
-    save_sale,
-    calculate_tax,
-    calculate_total_due,
     get_sale,
     print_receipt
 )
@@ -91,7 +81,7 @@ def test_total_purchase(app, client):
     assert total == 274.85, "Computing total purchase failed"
 
 
-def test_total_tax(app, client): #no need of this one it is a docktest now
+def test_total_tax(app, client):  # no need of this one it is a docktest now
     # Remove pass and add a test for tax calculation
     pass
 
@@ -99,8 +89,8 @@ def test_total_tax(app, client): #no need of this one it is a docktest now
 def test_save_sale(app, client):
     # Remove pass and add a test for saving a sale
 
-    #init part
-    purchase = [
+    # init part
+    purchase = [  # NOQA
             {'name': 't-shirt',
              'qty': 15,
              'price': 9.99
@@ -137,11 +127,12 @@ def test_get_receipt(app, client):
 
     response_receipt = client.get(url_for('get_receipt_printout_route', id=1))
     receipt = get_sale("1")
-    show = print_receipt(receipt['items'],
-                                 receipt['total_purchased'],
-                                 receipt['tax_due'],
-                                 receipt['total_due'])
-
+    show = print_receipt(
+        receipt['items'],
+        receipt['total_purchased'],
+        receipt['tax_due'],
+        receipt['total_due']
+    )
 
     assert response_receipt.status_code == 200
     assert response_receipt.data == bytearray(show, encoding="utf-8")
@@ -155,49 +146,48 @@ def test_get_sales(app, client):
 
     if not cursor.rowcount == 0:
 
-
-        show =[
-      {
-        "id": 1,
-        "items": [
-          {
-            "id": 1,
-            "name": "t-shirt",
-            "price": 9.99,
-            "qty": 15.0
-          },
-          {
-            "id": 2,
-            "name": "jeans",
-            "price": 12.5,
-            "qty": 10.0
-          }
-        ],
-        "tax_due": 247.365,
-        "total_due": 522.215,
-        "total_purchased": 274.85
-      },
-      {
-        "id": 2,
-        "items": [
-          {
-            "id": 3,
-            "name": "t-shirt",
-            "price": 9.99,
-            "qty": 15.0
-          },
-          {
-            "id": 4,
-            "name": "jeans",
-            "price": 12.5,
-            "qty": 10.0
-          }
-        ],
-        "tax_due": 247.365,
-        "total_due": 522.215,
-        "total_purchased": 274.85
-      }
-    ]
+        show = [
+            {
+                "id": 1,
+                "items": [
+                  {
+                    "id": 1,
+                    "name": "t-shirt",
+                    "price": 9.99,
+                    "qty": 15.0
+                  },
+                  {
+                    "id": 2,
+                    "name": "jeans",
+                    "price": 12.5,
+                    "qty": 10.0
+                  }
+                ],
+                "tax_due": 247.365,
+                "total_due": 522.215,
+                "total_purchased": 274.85
+            },
+            {
+                "id": 2,
+                "items": [
+                  {
+                    "id": 3,
+                    "name": "t-shirt",
+                    "price": 9.99,
+                    "qty": 15.0
+                  },
+                  {
+                    "id": 4,
+                    "name": "jeans",
+                    "price": 12.5,
+                    "qty": 10.0
+                  }
+                ],
+                "tax_due": 247.365,
+                "total_due": 522.215,
+                "total_purchased": 274.85
+            }
+        ]
 
     assert response_sales.status_code == 200
     assert json.loads(response_sales.data) == show

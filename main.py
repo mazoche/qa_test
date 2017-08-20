@@ -7,7 +7,6 @@ from flask import (
 )
 
 
-
 db = sqlite3.connect(':memory:')
 cursor = db.cursor()
 
@@ -36,14 +35,15 @@ def drop_tables(cursor=None):
     db.commit()
 
 
-def calculate_total_purchase(items): ####
+def calculate_total_purchase(items):
+
+    return sum(
+        item['price'] * item['qty']
+        for item in items
+    )
 
 
-    return sum(item['price'] * item['qty']
-               for item in items)
-
-
-def calculate_tax(total, sales_tax): ##
+def calculate_tax(total, sales_tax):
 
     """
     >>> calculate_tax(100, {'city': .2,'state': .7})
@@ -52,8 +52,6 @@ def calculate_tax(total, sales_tax): ##
 
     return sum(total * sales_tax[tax_rule]
                for tax_rule in sales_tax)
-
-
 
 
 def calculate_total_due(total_purchased, tax_due):
@@ -68,7 +66,7 @@ def calculate_total_due(total_purchased, tax_due):
     return total_purchased + tax_due
 
 
-def save_sale(purchase, total_purchased, tax_due, total_due): ###
+def save_sale(purchase, total_purchased, tax_due, total_due):
     cursor = db.cursor()
 
     cursor.execute('''INSERT INTO receipts(total_purchased, tax_due, total_due)
@@ -85,7 +83,7 @@ def save_sale(purchase, total_purchased, tax_due, total_due): ###
     return receipt_id
 
 
-def print_receipt(items, total_purchased, tax_due, total_due): ####
+def print_receipt(items, total_purchased, tax_due, total_due):
     receipt = '<html><body>'
     receipt += '<h2>My Fashion Store</h2>'
     receipt += '<hr>'
@@ -102,7 +100,7 @@ def print_receipt(items, total_purchased, tax_due, total_due): ####
     return receipt
 
 
-def complete_sale(purchase, sales_tax): ####
+def complete_sale(purchase, sales_tax):
     total_purchased = calculate_total_purchase(purchase)
     tax_due = calculate_tax(total_purchased, sales_tax)
     total_due = calculate_total_due(total_purchased, tax_due)
@@ -112,7 +110,7 @@ def complete_sale(purchase, sales_tax): ####
     return receipt_id
 
 
-def get_sales(): ###
+def get_sales():
     receipts = []
     for row in db.execute('SELECT * FROM receipts'):
         items = []
@@ -161,16 +159,16 @@ def create_app():
         setup_tables()
 
     @app.route("/")
-    def get_homepage_route(): # added route
+    def get_homepage_route():  # added route
         return '<h1>Welcome to My Fashion Shop</h1>'
 
     @app.route("/get-sales")
-    def get_sales_route(): # added route
+    def get_sales_route():  # added route
         receipts = get_sales()
         return jsonify(receipts)
 
     @app.route("/get-receipt/<id>")
-    def get_receipt_printout_route(id): # added route
+    def get_receipt_printout_route(id):  # added route
         print (id)
         print (type(id))
         # id is a required parameter
